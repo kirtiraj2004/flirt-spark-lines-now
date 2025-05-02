@@ -7,6 +7,9 @@ import AdBanner from '@/components/AdBanner';
 import { pickupLines, categories } from '@/data/pickupLines';
 import { useAppContext } from '@/contexts/AppContext';
 
+// AdMob Interstitial ID
+const ADMOB_INTERSTITIAL_ID = 'ca-app-pub-7175839283248391/7760168965';
+
 const CategoryPage: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
@@ -29,8 +32,8 @@ const CategoryPage: React.FC = () => {
     
     // Show interstitial ad every 8th view
     if (viewCount > 0 && viewCount % 8 === 0) {
-      // This would normally show an interstitial ad
-      console.log('Would show interstitial ad here');
+      // This would normally trigger an AdMob interstitial ad
+      console.log('Showing interstitial ad with ID:', ADMOB_INTERSTITIAL_ID);
       resetViewCount();
     }
     
