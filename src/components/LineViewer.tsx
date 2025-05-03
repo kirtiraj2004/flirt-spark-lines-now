@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { PickupLine } from '@/data/pickupLines';
-import { ArrowRight, Copy, Heart, Share } from 'lucide-react';
+import { ArrowRight, Copy, Heart, Share, Star } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface LineViewerProps {
@@ -12,11 +12,27 @@ interface LineViewerProps {
 }
 
 const LineViewer: React.FC<LineViewerProps> = ({ lines, currentIndex, onNext }) => {
-  const { addToFavorites, removeFromFavorites, isFavorite } = useAppContext();
+  const { 
+    addToFavorites, 
+    removeFromFavorites, 
+    isFavorite, 
+    addToCopyHistory,
+    ratePickupLine,
+    getLineRating
+  } = useAppContext();
+  
   const currentLine = lines[currentIndex];
+  const currentRating = getLineRating(currentLine.id);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(currentLine.text);
+    addToCopyHistory(currentLine);
+    
+    // Provide haptic feedback if available
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    
     toast({
       title: "Copied!",
       description: "Line copied to clipboard",
@@ -24,6 +40,10 @@ const LineViewer: React.FC<LineViewerProps> = ({ lines, currentIndex, onNext }) 
   };
 
   const handleShare = async () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    
     if (navigator.share) {
       try {
         await navigator.share({
@@ -43,6 +63,10 @@ const LineViewer: React.FC<LineViewerProps> = ({ lines, currentIndex, onNext }) 
   };
 
   const handleFavorite = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    
     if (isFavorite(currentLine.id)) {
       removeFromFavorites(currentLine.id);
       toast({
@@ -58,11 +82,41 @@ const LineViewer: React.FC<LineViewerProps> = ({ lines, currentIndex, onNext }) 
     }
   };
 
+  const handleRating = (rating: number) => {
+    if (navigator.vibrate) {
+      navigator.vibrate([30, 30, 30]);
+    }
+    
+    ratePickupLine(currentLine.id, rating);
+    toast({
+      title: "Rated!",
+      description: `You rated this line ${rating} stars`,
+    });
+  };
+
   return (
     <div className="line-container w-full max-w-md mx-auto">
       <div className="line-text min-h-[100px] flex items-center justify-center">
         {currentLine.text}
       </div>
+      
+      {/* Star Rating */}
+      <div className="flex justify-center gap-2 mb-4">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            onClick={() => handleRating(star)}
+            className="transition-transform hover:scale-110"
+            aria-label={`Rate ${star} stars`}
+          >
+            <Star
+              size={20}
+              className={star <= currentRating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"}
+            />
+          </button>
+        ))}
+      </div>
+      
       <div className="flex justify-center gap-8">
         <button
           onClick={handleCopy}

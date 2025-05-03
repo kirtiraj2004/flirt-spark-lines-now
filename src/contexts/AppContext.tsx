@@ -4,6 +4,17 @@ import { PickupLine } from '@/data/pickupLines';
 
 type ThemeType = 'light' | 'dark';
 
+interface LineRating {
+  lineId: string;
+  rating: number;
+  timestamp: number;
+}
+
+interface CopyHistoryItem {
+  line: PickupLine;
+  timestamp: number;
+}
+
 interface AppContextType {
   theme: ThemeType;
   toggleTheme: () => void;
@@ -16,6 +27,14 @@ interface AppContextType {
   resetViewCount: () => void;
   unlockedCategories: string[];
   unlockCategory: (categoryId: string) => void;
+  ratings: LineRating[];
+  ratePickupLine: (lineId: string, rating: number) => void;
+  getLineRating: (lineId: string) => number;
+  copyHistory: CopyHistoryItem[];
+  addToCopyHistory: (line: PickupLine) => void;
+  clearCopyHistory: () => void;
+  adConsent: boolean;
+  setAdConsent: (value: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -25,12 +44,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<PickupLine[]>([]);
   const [viewCount, setViewCount] = useState<number>(0);
   const [unlockedCategories, setUnlockedCategories] = useState<string[]>([]);
+  const [ratings, setRatings] = useState<LineRating[]>([]);
+  const [copyHistory, setCopyHistory] = useState<CopyHistoryItem[]>([]);
+  const [adConsent, setAdConsent] = useState<boolean>(false);
 
   // Load saved state from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as ThemeType;
     const savedFavorites = localStorage.getItem('favorites');
     const savedUnlockedCategories = localStorage.getItem('unlockedCategories');
+    const savedRatings = localStorage.getItem('ratings');
+    const savedCopyHistory = localStorage.getItem('copyHistory');
+    const savedAdConsent = localStorage.getItem('adConsent');
 
     if (savedTheme) {
       setTheme(savedTheme);
@@ -47,6 +72,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (savedUnlockedCategories) {
       setUnlockedCategories(JSON.parse(savedUnlockedCategories));
     }
+
+    if (savedRatings) {
+      setRatings(JSON.parse(savedRatings));
+    }
+
+    if (savedCopyHistory) {
+      setCopyHistory(JSON.parse(savedCopyHistory));
+    }
+
+    if (savedAdConsent) {
+      setAdConsent(JSON.parse(savedAdConsent));
+    }
   }, []);
 
   // Save state to localStorage whenever it changes
@@ -54,7 +91,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('theme', theme);
     localStorage.setItem('favorites', JSON.stringify(favorites));
     localStorage.setItem('unlockedCategories', JSON.stringify(unlockedCategories));
-  }, [theme, favorites, unlockedCategories]);
+    localStorage.setItem('ratings', JSON.stringify(ratings));
+    localStorage.setItem('copyHistory', JSON.stringify(copyHistory));
+    localStorage.setItem('adConsent', JSON.stringify(adConsent));
+  }, [theme, favorites, unlockedCategories, ratings, copyHistory, adConsent]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -90,6 +130,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const ratePickupLine = (lineId: string, rating: number) => {
+    setRatings(prevRatings => {
+      // Remove existing rating for this line if it exists
+      const filteredRatings = prevRatings.filter(item => item.lineId !== lineId);
+      
+      // Add new rating
+      return [...filteredRatings, {
+        lineId,
+        rating,
+        timestamp: Date.now()
+      }];
+    });
+  };
+
+  const getLineRating = (lineId: string): number => {
+    const foundRating = ratings.find(item => item.lineId === lineId);
+    return foundRating ? foundRating.rating : 0;
+  };
+
+  const addToCopyHistory = (line: PickupLine) => {
+    setCopyHistory(prevHistory => {
+      // Remove duplicates of this line if they exist
+      const filteredHistory = prevHistory.filter(item => item.line.id !== line.id);
+      
+      // Add to beginning of history
+      return [{
+        line,
+        timestamp: Date.now()
+      }, ...filteredHistory];
+    });
+  };
+
+  const clearCopyHistory = () => {
+    setCopyHistory([]);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -103,7 +179,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         incrementViewCount,
         resetViewCount,
         unlockedCategories,
-        unlockCategory
+        unlockCategory,
+        ratings,
+        ratePickupLine,
+        getLineRating,
+        copyHistory,
+        addToCopyHistory,
+        clearCopyHistory,
+        adConsent,
+        setAdConsent
       }}
     >
       {children}

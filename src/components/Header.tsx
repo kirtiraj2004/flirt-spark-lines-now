@@ -2,6 +2,7 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
+import SearchBar from './SearchBar';
 
 interface HeaderProps {
   title?: string;
@@ -11,6 +12,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ title, showBack = false }) => {
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const isSearch = location.pathname === '/search';
 
   return (
     <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border">
@@ -26,8 +28,12 @@ const Header: React.FC<HeaderProps> = ({ title, showBack = false }) => {
           </h1>
         </div>
         <div className="flex items-center gap-2">
+          {!isSearch && <SearchBar />}
           <Link to="/favorites" className="p-2 rounded-full hover:bg-secondary transition-colors">
             Saved
+          </Link>
+          <Link to="/history" className="p-2 rounded-full hover:bg-secondary transition-colors">
+            History
           </Link>
           <ThemeToggle />
         </div>
