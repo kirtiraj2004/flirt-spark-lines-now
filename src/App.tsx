@@ -14,6 +14,9 @@ import SearchPage from "@/pages/SearchPage";
 import HistoryPage from "@/pages/HistoryPage";
 import AdConsentDialog from "@/components/AdConsentDialog";
 
+// Add Gen-Z category color
+import "./genz-styles.css";
+
 const queryClient = new QueryClient();
 
 const App = () => (
