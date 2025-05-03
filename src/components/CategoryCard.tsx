@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Category } from '@/data/pickupLines';
+import { Category } from '@/data/categories';
 import { Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '@/contexts/AppContext';
