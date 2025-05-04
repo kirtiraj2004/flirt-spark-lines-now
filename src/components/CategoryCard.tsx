@@ -38,6 +38,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onUnlockAttempt }
           <div className="flex flex-col items-center">
             <Lock size={32} className="mb-2" />
             <span className="font-medium">Unlock Content</span>
+            <span className="text-xs mt-1 bg-primary px-2 py-1 rounded-full">Watch Ads to Unlock</span>
           </div>
         </div>
         <div className="text-4xl mb-2 opacity-50">{category.emoji}</div>

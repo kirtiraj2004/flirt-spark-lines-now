@@ -4,41 +4,66 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import LineViewer from '@/components/LineViewer';
 import AdBanner from '@/components/AdBanner';
+import FullScreenAd from '@/components/FullScreenAd';
 import { pickupLines, categories } from '@/data/pickupLines';
 import { useAppContext } from '@/contexts/AppContext';
-
-// AdMob Interstitial ID
-const ADMOB_INTERSTITIAL_ID = 'ca-app-pub-7175839283248391/7760168965';
 
 const CategoryPage: React.FC = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const navigate = useNavigate();
-  const { viewCount, incrementViewCount, resetViewCount } = useAppContext();
+  const { viewCount, incrementViewCount, resetViewCount, unlockedCategories } = useAppContext();
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const [showFullScreenAd, setShowFullScreenAd] = useState(false);
+  
   // Filter lines by category
   const categoryLines = pickupLines.filter(line => line.category === categoryId);
   const category = categories.find(cat => cat.id === categoryId);
 
+  // Check if this is a locked category that hasn't been unlocked
+  useEffect(() => {
+    if (category?.locked && !unlockedCategories.includes(category.id)) {
+      navigate('/');
+    }
+  }, [category, unlockedCategories, navigate]);
+  
   // Handle case where category doesn't exist
   useEffect(() => {
     if (!category || categoryLines.length === 0) {
       navigate('/');
     }
   }, [category, categoryLines, navigate]);
+  
+  // Random ad display chance
+  useEffect(() => {
+    if (!category) return;
+    
+    // Check if we should show a full-screen ad (random chance)
+    // Show ad with a random chance between lines 3-5
+    const randomCheck = () => {
+      const randomNum = Math.floor(Math.random() * 3) + 3; // Random number between 3-5
+      if (currentIndex > 0 && currentIndex % randomNum === 0) {
+        setShowFullScreenAd(true);
+      }
+    };
+    
+    randomCheck();
+  }, [currentIndex, category]);
 
   const handleNextLine = () => {
     incrementViewCount();
     
     // Show interstitial ad every 8th view
     if (viewCount > 0 && viewCount % 8 === 0) {
-      // This would normally trigger an AdMob interstitial ad
-      console.log('Showing interstitial ad with ID:', ADMOB_INTERSTITIAL_ID);
+      console.log('View count trigger for interstitial ad');
       resetViewCount();
     }
     
     // Go to the next line or loop back
     setCurrentIndex((prevIndex) => (prevIndex + 1) % categoryLines.length);
+  };
+
+  const handleAdClose = () => {
+    setShowFullScreenAd(false);
   };
 
   if (!category || categoryLines.length === 0) {
@@ -60,6 +85,8 @@ const CategoryPage: React.FC = () => {
       </main>
       
       <AdBanner />
+      
+      <FullScreenAd isOpen={showFullScreenAd} onClose={handleAdClose} />
     </div>
   );
 };

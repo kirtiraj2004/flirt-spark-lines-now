@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { PickupLine } from '@/data/pickupLines';
 
@@ -43,16 +42,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<ThemeType>('dark');
   const [favorites, setFavorites] = useState<PickupLine[]>([]);
   const [viewCount, setViewCount] = useState<number>(0);
-  const [unlockedCategories, setUnlockedCategories] = useState<string[]>([]);
   const [ratings, setRatings] = useState<LineRating[]>([]);
   const [copyHistory, setCopyHistory] = useState<CopyHistoryItem[]>([]);
   const [adConsent, setAdConsent] = useState<boolean>(false);
+  
+  const [unlockedCategories, setUnlockedCategories] = useState<string[]>([]);
 
   // Load saved state from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as ThemeType;
     const savedFavorites = localStorage.getItem('favorites');
-    const savedUnlockedCategories = localStorage.getItem('unlockedCategories');
     const savedRatings = localStorage.getItem('ratings');
     const savedCopyHistory = localStorage.getItem('copyHistory');
     const savedAdConsent = localStorage.getItem('adConsent');
@@ -69,10 +68,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setFavorites(JSON.parse(savedFavorites));
     }
 
-    if (savedUnlockedCategories) {
-      setUnlockedCategories(JSON.parse(savedUnlockedCategories));
-    }
-
     if (savedRatings) {
       setRatings(JSON.parse(savedRatings));
     }
@@ -84,16 +79,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (savedAdConsent) {
       setAdConsent(JSON.parse(savedAdConsent));
     }
+    
+    // For unlocked categories, we'll use sessionStorage instead of localStorage
+    // so they reset when the browser/app is closed
+    const savedUnlockedCategories = sessionStorage.getItem('unlockedCategories');
+    if (savedUnlockedCategories) {
+      setUnlockedCategories(JSON.parse(savedUnlockedCategories));
+    }
   }, []);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('theme', theme);
     localStorage.setItem('favorites', JSON.stringify(favorites));
-    localStorage.setItem('unlockedCategories', JSON.stringify(unlockedCategories));
     localStorage.setItem('ratings', JSON.stringify(ratings));
     localStorage.setItem('copyHistory', JSON.stringify(copyHistory));
     localStorage.setItem('adConsent', JSON.stringify(adConsent));
+    
+    // Save unlocked categories to sessionStorage (will clear when browser/app closes)
+    sessionStorage.setItem('unlockedCategories', JSON.stringify(unlockedCategories));
   }, [theme, favorites, unlockedCategories, ratings, copyHistory, adConsent]);
 
   const toggleTheme = () => {
@@ -122,12 +126,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const resetViewCount = () => {
     setViewCount(0);
-  };
-
-  const unlockCategory = (categoryId: string) => {
-    if (!unlockedCategories.includes(categoryId)) {
-      setUnlockedCategories([...unlockedCategories, categoryId]);
-    }
   };
 
   const ratePickupLine = (lineId: string, rating: number) => {
@@ -164,6 +162,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const clearCopyHistory = () => {
     setCopyHistory([]);
+  };
+
+  const unlockCategory = (categoryId: string) => {
+    if (!unlockedCategories.includes(categoryId)) {
+      setUnlockedCategories([...unlockedCategories, categoryId]);
+    }
   };
 
   return (

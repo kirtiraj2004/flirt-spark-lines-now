@@ -78,7 +78,7 @@ export const categories: Category[] = [
     name: "Gen-Z",
     emoji: "🤙",
     color: "bg-genz",
-    locked: false,
+    locked: true,
     description: "Internet meme-inspired pickup lines"
   }
 ];
